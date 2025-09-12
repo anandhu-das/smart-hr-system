@@ -1,0 +1,64 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<h2>HR Admin Dashboard</h2>
+<p class="text-muted">HR Management Portal - System Overview</p>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Employees</h5>
+                <h2>{{ total_employees }}</h2>
+                <p class="card-text">Total Staff</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Pending Leaves</h5>
+                <h2>{{ pending_leaves }}</h2>
+                <p class="card-text">Awaiting Approval</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Departments</h5>
+                <h2>{{ total_departments }}</h2>
+                <p class="card-text">Active Departments</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>HR Management Tools</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="/admin/hr_app/employee/" class="btn btn-outline-primary w-100">Manage Employees</a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="/admin/hr_app/leaverequest/" class="btn btn-outline-primary w-100">Review Leaves</a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="/admin/hr_app/payroll/" class="btn btn-outline-primary w-100">Process Payroll</a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="/admin/hr_app/candidate/" class="btn btn-outline-primary w-100">View Candidates</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-md-6">
+        <h1 class="display-4">Smart-HR Management System</h1>
+        <p class="lead">Streamline your HR operations with our comprehensive management system</p>
+        <div class="mt-4">
+            <a href="{% url 'employee_login' %}" class="btn btn-primary btn-lg me-2">Employee Login</a>
+            <a href="{% url 'hr_login' %}" class="btn btn-success btn-lg me-2">HR Login</a>
+            <a href="{% url 'candidate_registration' %}" class="btn btn-outline-primary btn-lg">Job Applicants</a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <img src="https://via.placeholder.com/500x300" class="img-fluid rounded" alt="HR Management">
+    </div>
+</div>
+<!-- Keep the features section below -->
+{% endblock %}

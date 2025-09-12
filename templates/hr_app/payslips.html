@@ -1,0 +1,49 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">My Payslips</h2>
+    
+    {% if payrolls %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>Period</th>
+                    <th>Basic Salary</th>
+                    <th>Allowances</th>
+                    <th>Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payroll in payrolls %}
+                <tr>
+                    <td>{{ payroll.month }} {{ payroll.year }}</td>
+                    <td>₹{{ payroll.basic_salary }}</td>
+                    <td>₹{{ payroll.allowances }}</td>
+                    <td>₹{{ payroll.deductions }}</td>
+                    <td>₹{{ payroll.net_salary }}</td>
+                    <td>
+                        <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if payroll.paid %}Paid{% else %}Pending{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <h4>No payslips available</h4>
+        <p>You don't have any payroll records yet. Please contact HR if you believe this is an error.</p>
+    </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'employee_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

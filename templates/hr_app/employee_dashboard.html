@@ -1,0 +1,38 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<h2>Employee Dashboard</h2>
+<p class="text-muted">Welcome, {{ user.username }}! Here's your personal workspace.</p>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">My Information</h5>
+                {% if employee %}
+                    <p class="card-text">Name: {{ employee.user.get_full_name }}</p>
+                    <p class="card-text">Position: {{ employee.position }}</p>
+                    <p class="card-text">Department: {{ employee.department }}</p>
+                {% else %}
+                    <p class="card-text">Please contact HR to complete your profile.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Quick Actions</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'apply_leave' %}" class="btn btn-light">Apply for Leave</a>
+                    <a href="{% url 'view_payslips' %}" class="btn btn-light">View Payslips</a>
+                    <a href="#" class="btn btn-light">Update Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add leave requests and other employee-specific content -->
+{% endblock %}

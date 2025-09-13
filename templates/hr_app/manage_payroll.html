@@ -1,0 +1,104 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Manage Payroll Records</h2>
+    
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Filter Payroll Records</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <select name="month" class="form-select">
+                        <option value="">All Months</option>
+                        {% for month in months %}
+                        <option value="{{ month }}" {% if request.GET.month == month %}selected{% endif %}>{{ month }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="year" class="form-select">
+                        <option value="">All Years</option>
+                        {% for year in years %}
+                        <option value="{{ year }}" {% if request.GET.year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>Paid</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payroll Records -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5>Payroll Records</h5>
+            <a href="{% url 'create_payroll' %}" class="btn btn-success btn-sm">+ New Payroll</a>
+        </div>
+        <div class="card-body">
+            {% if payrolls %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Period</th>
+                            <th>Basic Salary</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Payment Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in payrolls %}
+                        <tr>
+                            <td>{{ payroll.employee }}</td>
+                            <td>{{ payroll.employee.department|default:"-" }}</td>
+                            <td>{{ payroll.month }} {{ payroll.year }}</td>
+                            <td>₹{{ payroll.basic_salary }}</td>
+                            <td>₹{{ payroll.net_salary }}</td>
+                            <td>
+                                <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if payroll.paid %}Paid{% else %}Pending{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ payroll.payment_date|default:"-" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'generate_payroll_pdf' payroll.id %}" class="btn btn-primary" title="Download PDF">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                    <a href="{% url 'edit_payroll' payroll.id %}" class="btn btn-secondary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'delete_payroll' payroll.id %}" class="btn btn-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">No payroll records found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

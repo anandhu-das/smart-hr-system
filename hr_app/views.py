@@ -11,11 +11,11 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 import io
 from django.contrib.auth import logout
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from datetime import datetime
 
 from .models import Employee, LeaveRequest, Payroll, Candidate, Department
-from .forms import LeaveRequestForm, CandidateForm, PayrollForm
+from .forms import LeaveRequestForm, CandidateForm, PayrollForm, PayrollCalculationForm
 from django.contrib.auth.views import LoginView
 
 # Check if user is HR staff - ROBUST VERSION
@@ -84,12 +84,16 @@ def hr_dashboard(request):
     pending_leaves = LeaveRequest.objects.filter(status='Pending').count()
     total_departments = Department.objects.count()
     recent_candidates = Candidate.objects.order_by('-applied_on')[:5]
+    pending_payments = Payroll.objects.filter(paid=False).count()
+    total_paid = Payroll.objects.filter(paid=True).aggregate(Sum('net_salary'))['net_salary__sum'] or 0
     
     context = {
         'total_employees': total_employees,
         'pending_leaves': pending_leaves,
         'total_departments': total_departments,
         'recent_candidates': recent_candidates,
+        'pending_payments': pending_payments,
+        'total_paid': total_paid,
     }
     return render(request, 'hr_app/hr_dashboard.html', context)
 

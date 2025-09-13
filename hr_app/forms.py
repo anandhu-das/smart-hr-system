@@ -13,17 +13,19 @@ class LeaveRequestForm(forms.ModelForm):
 class CandidateForm(forms.ModelForm):
     class Meta:
         model = Candidate
-        fields = ['name', 'email', 'position', 'cv']
+        fields = ['name', 'email', 'phone', 'position', 'cv', 'cover_letter']
+        widgets = {
+            'cover_letter': forms.Textarea(attrs={'rows': 4}),
+        }
 
-# This was incorrectly nested inside CandidateForm
 class PayrollForm(forms.ModelForm):
     class Meta:
         model = Payroll
         fields = [
             'employee', 'month', 'year', 'basic_salary', 'house_rent_allowance',
             'travel_allowance', 'medical_allowance', 'special_allowance',
-            'overtime_hours', 'professional_tax', 'income_tax', 'other_deductions',
-            'paid', 'payment_date'
+            'overtime_hours', 'overtime_rate', 'professional_tax', 'income_tax', 
+            'other_deductions', 'paid', 'payment_date'
         ]
         widgets = {
             'payment_date': forms.DateInput(attrs={'type': 'date'}),

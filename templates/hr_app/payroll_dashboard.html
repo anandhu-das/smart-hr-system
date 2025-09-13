@@ -1,0 +1,88 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Payroll Management Dashboard</h2>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total Paid</h5>
+                    <h2>₹{{ total_paid|default:0 }}</h2>
+                    <p class="card-text">Total Salary Disbursed</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Pending Payments</h5>
+                    <h2>{{ pending_payments }}</h2>
+                    <p class="card-text">Awaiting Processing</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'create_payroll' %}" class="btn btn-light btn-sm">Create Payroll</a>
+                        <a href="{% url 'manage_payroll' %}" class="btn btn-light btn-sm">Manage Payroll</a>
+                        <a href="{% url 'bulk_payroll' %}" class="btn btn-light btn-sm">Bulk Generation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payrolls -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Recent Payroll Records</h5>
+        </div>
+        <div class="card-body">
+            {% if recent_payrolls %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th>Basic Salary</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in recent_payrolls %}
+                        <tr>
+                            <td>{{ payroll.employee }}</td>
+                            <td>{{ payroll.month }} {{ payroll.year }}</td>
+                            <td>₹{{ payroll.basic_salary }}</td>
+                            <td>₹{{ payroll.net_salary }}</td>
+                            <td>
+                                <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if payroll.paid %}Paid{% else %}Pending{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'generate_payroll_pdf' payroll.id %}" class="btn btn-sm btn-primary">PDF</a>
+                                <a href="{% url 'edit_payroll' payroll.id %}" class="btn btn-sm btn-secondary">Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">No payroll records found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

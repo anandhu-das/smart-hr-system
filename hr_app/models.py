@@ -37,7 +37,6 @@ class LeaveRequest(models.Model):
     def __str__(self):
         return f"{self.employee} - {self.start_date} to {self.end_date}"
 
-# Add to your existing Payroll model or update it
 class Payroll(models.Model):
     EMPLOYEE_CONTRIBUTION = 0.12  # 12% for EPF/PPF
     EMPLOYER_CONTRIBUTION = 0.133  # 13.3% for EPF/PPF
@@ -99,11 +98,23 @@ class Payroll(models.Model):
         return f"{self.employee} - {self.month}/{self.year} - ₹{self.net_salary}"
 
 class Candidate(models.Model):
+    JOB_STATUS = [
+        ('Applied', 'Applied'),
+        ('Reviewed', 'Reviewed'),
+        ('Interview', 'Interview'),
+        ('Rejected', 'Rejected'),
+        ('Hired', 'Hired'),
+    ]
+    
     name = models.CharField(max_length=100)
     email = models.EmailField()
+    phone = models.CharField(max_length=15, blank=True)
     position = models.CharField(max_length=100)
     cv = models.FileField(upload_to='cvs/')
+    cover_letter = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=JOB_STATUS, default='Applied')
     applied_on = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True)
     
     def __str__(self):
         return self.name

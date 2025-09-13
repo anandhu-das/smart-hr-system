@@ -1,0 +1,123 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Leave Management</h2>
+    
+    <div class="mb-3">
+        <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to HR Dashboard</a>
+    </div>
+
+    <!-- Pending Leaves Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-white">
+            <h4>Pending Leave Requests ({{ pending_leaves|length }})</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_leaves %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Department</th>
+                            <th>Leave Period</th>
+                            <th>Reason</th>
+                            <th>Applied On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in pending_leaves %}
+                        <tr>
+                            <td>{{ leave.employee.user.get_full_name }}</td>
+                            <td>{{ leave.employee.department }}</td>
+                            <td>{{ leave.start_date }} to {{ leave.end_date }}</td>
+                            <td>{{ leave.reason }}</td>
+                            <td>{{ leave.applied_on|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'approve_leave' leave.id %}" class="btn btn-success btn-sm">Approve</a>
+                                <a href="{% url 'reject_leave' leave.id %}" class="btn btn-danger btn-sm">Reject</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">No pending leave requests.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recently Approved Leaves -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4>Recently Approved Leaves</h4>
+        </div>
+        <div class="card-body">
+            {% if approved_leaves %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Leave Period</th>
+                            <th>Reason</th>
+                            <th>Approved On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in approved_leaves %}
+                        <tr>
+                            <td>{{ leave.employee.user.get_full_name }}</td>
+                            <td>{{ leave.start_date }} to {{ leave.end_date }}</td>
+                            <td>{{ leave.reason }}</td>
+                            <td>{{ leave.applied_on|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">No approved leaves yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recently Rejected Leaves -->
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h4>Recently Rejected Leaves</h4>
+        </div>
+        <div class="card-body">
+            {% if rejected_leaves %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Leave Period</th>
+                            <th>Reason</th>
+                            <th>Rejected On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in rejected_leaves %}
+                        <tr>
+                            <td>{{ leave.employee.user.get_full_name }}</td>
+                            <td>{{ leave.start_date }} to {{ leave.end_date }}</td>
+                            <td>{{ leave.reason }}</td>
+                            <td>{{ leave.applied_on|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center">No rejected leaves.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

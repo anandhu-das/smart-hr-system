@@ -1,5 +1,5 @@
 from django import forms
-from .models import LeaveRequest, Candidate
+from .models import LeaveRequest, Candidate, Payroll
 
 class LeaveRequestForm(forms.ModelForm):
     class Meta:
@@ -14,3 +14,33 @@ class CandidateForm(forms.ModelForm):
     class Meta:
         model = Candidate
         fields = ['name', 'email', 'position', 'cv']
+
+# This was incorrectly nested inside CandidateForm
+class PayrollForm(forms.ModelForm):
+    class Meta:
+        model = Payroll
+        fields = [
+            'employee', 'month', 'year', 'basic_salary', 'house_rent_allowance',
+            'travel_allowance', 'medical_allowance', 'special_allowance',
+            'overtime_hours', 'professional_tax', 'income_tax', 'other_deductions',
+            'paid', 'payment_date'
+        ]
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date'}),
+            'month': forms.Select(choices=[
+                ('January', 'January'), ('February', 'February'), ('March', 'March'),
+                ('April', 'April'), ('May', 'May'), ('June', 'June'),
+                ('July', 'July'), ('August', 'August'), ('September', 'September'),
+                ('October', 'October'), ('November', 'November'), ('December', 'December')
+            ]),
+            'year': forms.NumberInput(attrs={'min': 2020, 'max': 2030}),
+        }
+
+class PayrollCalculationForm(forms.Form):
+    month = forms.ChoiceField(choices=[
+        ('January', 'January'), ('February', 'February'), ('March', 'March'),
+        ('April', 'April'), ('May', 'May'), ('June', 'June'),
+        ('July', 'July'), ('August', 'August'), ('September', 'September'),
+        ('October', 'October'), ('November', 'November'), ('December', 'December')
+    ])
+    year = forms.IntegerField(min_value=2020, max_value=2030)

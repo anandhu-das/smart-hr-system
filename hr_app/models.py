@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Avg
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -118,3 +119,13 @@ class Candidate(models.Model):
     
     def __str__(self):
         return self.name
+    
+class PerformanceReview(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    rating = models.IntegerField(help_text="Rating from 1 to 5")
+    review_date = models.DateField()
+    comments = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Review for {self.employee} on {self.review_date}"
+   

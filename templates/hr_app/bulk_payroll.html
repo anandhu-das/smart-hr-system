@@ -1,0 +1,107 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Bulk Payroll Generation</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="month" class="form-label">Month</label>
+                                <select name="month" id="month" class="form-select" required>
+                                    <option value="">Select Month</option>
+                                    <option value="January">January</option>
+                                    <option value="February">February</option>
+                                    <option value="March">March</option>
+                                    <option value="April">April</option>
+                                    <option value="May">May</option>
+                                    <option value="June">June</option>
+                                    <option value="July">July</option>
+                                    <option value="August">August</option>
+                                    <option value="September">September</option>
+                                    <option value="October">October</option>
+                                    <option value="November">November</option>
+                                    <option value="December">December</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="year" class="form-label">Year</label>
+                                <input type="number" name="year" id="year" class="form-control" 
+                                       min="2020" max="2030" value="2025" required>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Select Employees</h5>
+                                <div class="form-check">
+                                    <input type="checkbox" id="select-all" class="form-check-input">
+                                    <label for="select-all" class="form-check-label">Select All Employees</label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for employee in employees %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input type="checkbox" name="employees" value="{{ employee.id }}" 
+                                                   id="employee-{{ employee.id }}" class="form-check-input employee-checkbox">
+                                            <label for="employee-{{ employee.id }}" class="form-check-label">
+                                                {{ employee }} ({{ employee.department|default:"No Department" }})
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12">
+                                        <p class="text-center">No employees found.</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'payroll_dashboard' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Generate Payrolls</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all functionality
+        const selectAll = document.getElementById('select-all');
+        const employeeCheckboxes = document.querySelectorAll('.employee-checkbox');
+        
+        selectAll.addEventListener('change', function() {
+            employeeCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+        
+        // Update select all when individual checkboxes change
+        employeeCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (!this.checked) {
+                    selectAll.checked = false;
+                } else {
+                    const allChecked = Array.from(employeeCheckboxes).every(cb => cb.checked);
+                    selectAll.checked = allChecked;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Candidate Repository</h2>
+    <p>View and manage all job applications submitted to the company.</p>
+    
+    {% if candidates %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mt-3">
+            <thead class="table-primary">
+                <tr>
+                    <th>Name</th>
+                    <th>Position Applied</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Applied On</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for candidate in candidates %}
+                <tr>
+                    <td>{{ candidate.name }}</td>
+                    <td>{{ candidate.position }}</td>
+                    <td>{{ candidate.email }}</td>
+                    <td>{{ candidate.phone }}</td>
+                    <td>{{ candidate.applied_on|date:"F d, Y" }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if candidate.status == 'Applied' %}bg-info{% endif %}
+                            {% if candidate.status == 'Reviewed' %}bg-secondary{% endif %}
+                            {% if candidate.status == 'Interview' %}bg-primary{% endif %}
+                            {% if candidate.status == 'Rejected' %}bg-danger{% endif %}
+                            {% if candidate.status == 'Hired' %}bg-success{% endif %}">
+                            {{ candidate.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            {% if candidate.cv %}
+                                <a href="{{ candidate.cv.url }}" class="btn btn-primary" title="Download CV" download>
+                                    <i class="bi bi-download"></i> CV
+                                </a>
+                            {% endif %}
+                            <a href="#" class="btn btn-secondary" title="Update Status">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="#" class="btn btn-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3" role="alert">
+        <h4 class="alert-heading">No Candidates Found</h4>
+        <p>There are currently no candidate resumes in the repository.</p>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

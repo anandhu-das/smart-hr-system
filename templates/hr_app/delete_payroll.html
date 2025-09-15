@@ -1,0 +1,43 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Delete Payroll Record</h3>
+                </div>
+                <div class="card-body">
+                    <p class="alert alert-warning">
+                        <strong>Warning:</strong> Are you sure you want to delete this payroll record?
+                        This action cannot be undone.
+                    </p>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5>Payroll Details</h5>
+                            <p><strong>Employee:</strong> {{ payroll.employee }}</p>
+                            <p><strong>Period:</strong> {{ payroll.month }} {{ payroll.year }}</p>
+                            <p><strong>Net Salary:</strong> ₹{{ payroll.net_salary }}</p>
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if payroll.paid %}Paid{% else %}Pending{% endif %}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'manage_payroll' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete Permanently</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

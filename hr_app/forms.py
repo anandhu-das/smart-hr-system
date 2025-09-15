@@ -1,5 +1,6 @@
 from django import forms
-from .models import LeaveRequest, Candidate, Payroll
+from .models import LeaveRequest, Candidate, Payroll, Employee
+
 
 class LeaveRequestForm(forms.ModelForm):
     class Meta:
@@ -10,6 +11,7 @@ class LeaveRequestForm(forms.ModelForm):
             'end_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+
 class CandidateForm(forms.ModelForm):
     class Meta:
         model = Candidate
@@ -18,13 +20,14 @@ class CandidateForm(forms.ModelForm):
             'cover_letter': forms.Textarea(attrs={'rows': 4}),
         }
 
+
 class PayrollForm(forms.ModelForm):
     class Meta:
         model = Payroll
         fields = [
             'employee', 'month', 'year', 'basic_salary', 'house_rent_allowance',
             'travel_allowance', 'medical_allowance', 'special_allowance',
-            'overtime_hours', 'overtime_rate', 'professional_tax', 'income_tax', 
+            'overtime_hours', 'overtime_rate', 'professional_tax', 'income_tax',
             'other_deductions', 'paid', 'payment_date'
         ]
         widgets = {
@@ -38,6 +41,7 @@ class PayrollForm(forms.ModelForm):
             'year': forms.NumberInput(attrs={'min': 2020, 'max': 2030}),
         }
 
+
 class PayrollCalculationForm(forms.Form):
     month = forms.ChoiceField(choices=[
         ('January', 'January'), ('February', 'February'), ('March', 'March'),
@@ -46,3 +50,21 @@ class PayrollCalculationForm(forms.Form):
         ('October', 'October'), ('November', 'November'), ('December', 'December')
     ])
     year = forms.IntegerField(min_value=2020, max_value=2030)
+
+
+class EmployeeForm(forms.ModelForm):
+    class Meta:   # 👈 must be indented properly
+        model = Employee
+        fields = [
+            'employee_id',
+            'department',
+            'position',
+            'date_joined',
+            'salary',
+            'contact_number',
+            'address',
+        ]
+        widgets = {
+            'date_joined': forms.DateInput(attrs={'type': 'date'}),
+            'address': forms.Textarea(attrs={'rows': 3}),
+        }

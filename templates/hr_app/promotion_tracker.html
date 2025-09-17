@@ -1,0 +1,40 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Promotion Tracker</h2>
+    <p class="text-muted">A list of employees who meet the criteria for a promotion.</p>
+
+    {% if eligible_employees %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover mt-3">
+            <thead class="table-primary">
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Years of Service</th>
+                    <th>Average Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in eligible_employees %}
+                <tr>
+                    <td>{{ item.employee.user.get_full_name }}</td>
+                    <td>{{ item.years_of_service }} years</td>
+                    <td>{{ item.average_rating }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3" role="alert">
+        <h4 class="alert-heading">No Eligible Employees Found</h4>
+        <p>There are currently no employees who meet the criteria for promotion.</p>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

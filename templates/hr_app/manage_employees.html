@@ -1,0 +1,44 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">Manage Employees</h2>
+    <a href="{% url 'add_employee' %}" class="btn btn-success mb-3">Add New Employee</a>
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Position</th>
+                    <th>Date Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td>{{ employee.employee_id }}</td>
+                    <td>{{ employee.user.first_name }} {{ employee.user.last_name }}</td>
+                    <td>{{ employee.department.name|default:"N/A" }}</td>
+                    <td>{{ employee.position }}</td>
+                    <td>{{ employee.date_joined|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'edit_employee' employee.id %}" class="btn btn-secondary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'delete_employee' employee.id %}" class="btn btn-danger" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'hr_app/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Add New Employee</h2>
+    <p class="text-muted">Fill out the form below to add a new employee to the system.</p>
+    <div class="card my-4">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save Employee</button>
+                    <a href="{% url 'manage_employees' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

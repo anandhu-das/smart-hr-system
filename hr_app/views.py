@@ -473,17 +473,26 @@ def my_profile(request):
         employee = None
     return render(request, "hr_app/my_profile.html", {"employee": employee})
 
+    return render(request, 'hr_app/promotion_tracker.html', {'eligible_employees': eligible_employees})
+
+#HR Management
+
 @login_required
 @user_passes_test(is_hr_staff)
 def promotion_tracker(request):
-    # Example criteria: > 2 years tenure and average rating > 4
+    """
+    Identifies eligible employees for promotion based on tenure and performance.
+    """
     eligible_employees = []
     today = datetime.now().date()
     
+    # Iterate through all employees to check for eligibility
     for employee in Employee.objects.all():
+        # Criteria 1: Check for at least 2 years of service
         years_of_service = (today - employee.date_joined).days / 365.25
         
         if years_of_service >= 2:
+            # Criteria 2: Check for a high average performance rating (e.g., > 4)
             avg_rating = PerformanceReview.objects.filter(employee=employee).aggregate(Avg('rating'))['rating__avg']
             
             if avg_rating and avg_rating > 4:

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Avg
+
+# Remove this line: from django.db.models import Avg
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -128,4 +129,5 @@ class PerformanceReview(models.Model):
 
     def __str__(self):
         return f"Review for {self.employee} on {self.review_date}"
-   
+
+# Remove the two duplicate class PerformanceReview definitions at the end of the file.

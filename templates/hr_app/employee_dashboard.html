@@ -1,38 +1,44 @@
 {% extends 'hr_app/base.html' %}
 
 {% block content %}
-<h2>Employee Dashboard</h2>
-<p class="text-muted">Welcome, {{ user.username }}! Here's your personal workspace.</p>
-
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-body">
-                <h5 class="card-title">My Information</h5>
-                {% if employee %}
-                    <p class="card-text">Name: {{ employee.user.get_full_name }}</p>
-                    <p class="card-text">Position: {{ employee.position }}</p>
-                    <p class="card-text">Department: {{ employee.department }}</p>
-                {% else %}
-                    <p class="card-text">Please contact HR to complete your profile.</p>
-                {% endif %}
-            </div>
+<div class="container my-5">
+    <div class="row align-items-center mb-5 text-center text-md-start">
+        <div class="col-lg-12">
+            <h1 class="display-3 fw-bold text-white">Employee Dashboard</h1>
+            <p class="lead text-white-50">Welcome, {{ user.first_name }}! Here's your personal workspace.</p>
         </div>
     </div>
     
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-body">
-                <h5 class="card-title">Quick Actions</h5>
-                <div class="d-grid gap-2">
-                    <a href="{% url 'apply_leave' %}" class="btn btn-light">Apply for Leave</a>
-                    <a href="{% url 'view_payslips' %}" class="btn btn-light">View Payslips</a>
-                    <a href="{% url 'my_profile' %}" class="btn btn-block btn-light">Update Profile</a>
+    <div class="row g-4 mb-5 d-flex align-items-stretch">
+        <div class="col-md-6">
+            <div class="card card-animate h-100 p-4 text-center text-md-start">
+                <div class="card-body">
+                    <h5 class="card-title text-uppercase text-muted fw-bold mb-3">My Information</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Name:</strong> {{ employee.user.first_name }} {{ employee.user.last_name }}</li>
+                        <li><strong>Position:</strong> {{ employee.position }}</li>
+                        <li><strong>Department:</strong> {{ employee.department.name }}</li>
+                        <li><strong>Date Joined:</strong> {{ employee.date_joined|date:"M d, Y" }}</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-center">
+                    <a href="{% url 'my_profile' %}" class="btn btn-primary w-100">Update Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-animate h-100 p-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-uppercase text-muted fw-bold mb-3">Quick Actions</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'apply_leave' %}" class="btn btn-outline-primary btn-lg">Apply for Leave</a>
+                        <a href="{% url 'view_payslips' %}" class="btn btn-outline-primary btn-lg">View Payslips</a>
+                        <a href="{% url 'leave_history' %}" class="btn btn-outline-primary btn-lg">My Leaves</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Add leave requests and other employee-specific content -->
 {% endblock %}

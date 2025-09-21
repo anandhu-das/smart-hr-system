@@ -22,19 +22,17 @@
             --arc-color-edge: rgba(168, 85, 247, 0.05);
         }
         
-       body {
-    background-color: var(--pure-black);
-    color: var(--text-white);
-    font-family: 'Poppins', sans-serif;
-    line-height: 1.6;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-    
-    /* Subtle vertical lines in the background */
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 20px 100%;
-}
+        body {
+            background-color: var(--pure-black);
+            color: var(--text-white);
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 100%;
+        }
 
         /* Navbar styling */
         .navbar {
@@ -51,8 +49,14 @@
             color: var(--text-white);
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
         
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
         /* Button styling with bold purple */
         .btn-primary, .btn-outline-primary {
             border-radius: 8px;
@@ -79,8 +83,8 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
         }
-
-        /* New CSS for the glowing arc at the bottom */
+        
+        /* Animated background and shape */
         .glowing-arc-bottom {
             position: fixed;
             bottom: -200px;
@@ -102,7 +106,31 @@
             100% { transform: scaleX(2.5) scaleY(1); opacity: 0.7; }
         }
 
-        /* Ensure content is above the background effects */
+        /* Particles CSS */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .starfield span {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: animate-star 10s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes animate-star {
+            0% { transform: scale(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+
         .container {
             position: relative;
             z-index: 1;
@@ -110,6 +138,7 @@
     </style>
 </head>
 <body>
+    <div class="starfield"></div>
     <div class="glowing-arc-bottom"></div>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -134,7 +163,7 @@
         {% endblock %}
     </div>
 
-    <footer class="bg-dark text-center text-lg-start mt-5">
+    <footer class="bg-dark text-center text-lg-start mt-5" style="background-color: #1a1a1a !important;">
         <div class="text-center p-3 text-white-50">
             © 2025 Smart-HR System | MCA Project | Developed with Django & Bootstrap
         </div>
@@ -142,5 +171,23 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <script>
+        // JavaScript to generate and animate the starfield particles
+        document.addEventListener('DOMContentLoaded', function() {
+            const starfield = document.querySelector('.starfield');
+            const numParticles = 100; // Number of particles
+
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('span');
+                const size = Math.random() * 2 + 1; // Particle size between 1px and 3px
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                starfield.appendChild(particle);
+            }
+        });
+    </script>
 </body>
 </html>

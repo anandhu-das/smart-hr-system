@@ -1,0 +1,43 @@
+{% extends 'hr_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow-lg" style="max-width: 600px; width: 100%;">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">Job Application</h2>
+            <p class="text-muted text-center mb-4">Submit your resume to become a part of our team.</p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone">
+                </div>
+                <div class="mb-3">
+                    <label for="position" class="form-label">Position Applied For</label>
+                    <input type="text" class="form-control" id="position" name="position" required>
+                </div>
+                <div class="mb-3">
+                    <label for="cv" class="form-label">Upload CV (PDF, DOCX)</label>
+                    <input type="file" class="form-control" id="cv" name="cv" required>
+                </div>
+                <div class="mb-3">
+                    <label for="cover_letter" class="form-label">Cover Letter (Optional)</label>
+                    <textarea class="form-control" id="cover_letter" name="cover_letter" rows="4"></textarea>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-primary w-100 py-2">Submit Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

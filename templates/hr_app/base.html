@@ -6,87 +6,141 @@
     <title>Smart-HR System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     
-<style>
-    /* Define the color palette using CSS variables for consistency */
-    :root {
-        --pure-black: #000000;
-        --bold-purple: #A855F7;
-        --light-purple: #C084FC;
-        --text-white: #FFFFFF;
-        --text-muted: #B3B3B3;
-    }
+    <style>
+        /* Define the color palette */
+        :root {
+            --pure-black: #000000;
+            --solid-purple: #A855F7;
+            --light-purple: #C084FC;
+            --text-white: #FFFFFF;
+            --text-muted: #B3B3B3;
+            
+            /* New colors for the glowing arc */
+            --arc-color-center: rgba(168, 85, 247, 0.4);
+            --arc-color-edge: rgba(168, 85, 247, 0.05);
+        }
+        
+       body {
+    background-color: var(--pure-black);
+    color: var(--text-white);
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
     
-    body {
-        background-color: var(--pure-black);
-        color: var(--text-white);
-        font-family: 'Poppins', sans-serif;
-        line-height: 1.6;
-        min-height: 100vh;
-        position: relative;
-    }
+    /* Subtle vertical lines in the background */
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 100%;
+}
 
-    /* General link styling */
-    a {
-        color: var(--bold-purple);
-        text-decoration: none;
-    }
-    
-    a:hover {
-        color: var(--light-purple);
-        text-decoration: none;
-    }
-    
-    /* Navbar styling for a clean, dark look */
-    .navbar {
-        background-color: var(--pure-black) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Card and UI element styling */
-    .card {
-        background-color: #111111;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        color: var(--text-white);
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    }
+        /* Navbar styling */
+        .navbar {
+            background-color: var(--pure-black) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* Card and UI element styling */
+        .card {
+            background-color: #111111;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-white);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        
+        /* Button styling with bold purple */
+        .btn-primary, .btn-outline-primary {
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--solid-purple) !important;
+            border-color: var(--solid-purple) !important;
+            color: var(--text-white) !important;
+        }
 
-    /* Button styling with bold purple and shining effect */
-    .btn-primary, .btn-outline-primary {
-        border-radius: 8px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-primary {
-        background-color: var(--bold-purple) !important;
-        border-color: var(--bold-purple) !important;
-        color: var(--text-white) !important;
-    }
+        .btn-outline-primary {
+            background-color: transparent !important;
+            border: 2px solid var(--solid-purple) !important;
+            color: var(--solid-purple) !important;
+        }
 
-    .btn-outline-primary {
-        background-color: transparent !important;
-        border: 2px solid var(--bold-purple) !important;
-        color: var(--bold-purple) !important;
-    }
+        .btn-primary:hover, .btn-outline-primary:hover {
+            background-color: var(--light-purple) !important;
+            border-color: var(--light-purple) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
 
-    .btn-primary:hover, .btn-outline-primary:hover {
-        background-color: var(--light-purple) !important;
-        border-color: var(--light-purple) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
-    }
-</style>
+        /* New CSS for the glowing arc at the bottom */
+        .glowing-arc-bottom {
+            position: fixed;
+            bottom: -200px;
+            left: 0;
+            width: 100%;
+            height: 400px;
+            background: radial-gradient(ellipse at center, var(--arc-color-center) 0%, transparent 70%);
+            border-radius: 50% / 100px;
+            transform: scaleX(2.5);
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.7;
+            animation: arcPulse 15s infinite ease-in-out;
+        }
+
+        @keyframes arcPulse {
+            0% { transform: scaleX(2.5) scaleY(1); opacity: 0.7; }
+            50% { transform: scaleX(2.6) scaleY(1.05); opacity: 0.8; }
+            100% { transform: scaleX(2.5) scaleY(1); opacity: 0.7; }
+        }
+
+        /* Ensure content is above the background effects */
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
 </head>
 <body>
+    <div class="glowing-arc-bottom"></div>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        </nav>
+
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="bi 
+                        {% if message.tags == 'success' %}bi-check-circle-fill
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}bi-exclamation-circle-fill
+                        {% elif message.tags == 'warning' %}bi-exclamation-triangle-fill
+                        {% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         {% block content %}
         {% endblock %}
-    </nav>
-    </body>
+    </div>
+
+    <footer class="bg-dark text-center text-lg-start mt-5">
+        <div class="text-center p-3 text-white-50">
+            © 2025 Smart-HR System | MCA Project | Developed with Django & Bootstrap
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+</body>
 </html>

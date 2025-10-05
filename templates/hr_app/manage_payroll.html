@@ -1,15 +1,16 @@
 {% extends 'hr_app/base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">Manage Payroll Records</h2>
+<div class="glowing-arc-bottom"></div>
+<div class="container my-5">
+    <h2 class="my-4 text-white fw-bold">Manage Payroll Records</h2>
     
-    <!-- Filter Form -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5>Filter Payroll Records</h5>
+    <div class="card p-4 shadow-lg mb-4">
+        <div class="card-header bg-transparent border-0 pt-0 pb-3">
+            <h5 class="text-white">Filter Payroll Records</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-0">
             <form method="get" class="row g-3">
                 <div class="col-md-3">
                     <select name="month" class="form-select">
@@ -41,16 +42,18 @@
         </div>
     </div>
 
-    <!-- Payroll Records -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5>Payroll Records</h5>
-            <a href="{% url 'create_payroll' %}" class="btn btn-success btn-sm">+ New Payroll</a>
+    <div class="card p-4 shadow-lg">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pb-3">
+            <h5 class="text-white fw-bold">Payroll Records</h5>
+            <div>
+                <a href="{% url 'generate_bulk_payroll' %}" class="btn btn-outline-primary btn-sm me-2">Generate Bulk</a>
+                <a href="{% url 'create_payroll' %}" class="btn btn-primary btn-sm">+ New Payroll</a>
+            </div>
         </div>
-        <div class="card-body">
+        <div class="card-body pt-0">
             {% if payrolls %}
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped table-dark align-middle">
                     <thead>
                         <tr>
                             <th>Employee</th>
@@ -59,7 +62,6 @@
                             <th>Basic Salary</th>
                             <th>Net Salary</th>
                             <th>Status</th>
-                            <th>Payment Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -67,25 +69,25 @@
                         {% for payroll in payrolls %}
                         <tr>
                             <td>{{ payroll.employee }}</td>
-                            <td>{{ payroll.employee.department|default:"-" }}</td>
+                            <td>{{ payroll.employee.department|default:"N/A" }}</td>
                             <td>{{ payroll.month }} {{ payroll.year }}</td>
                             <td>₹{{ payroll.basic_salary }}</td>
-                            <td>₹{{ payroll.net_salary }}</td>
+                            <td class="text-success fw-bold">₹{{ payroll.net_salary }}</td>
                             <td>
                                 <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning{% endif %}">
                                     {% if payroll.paid %}Paid{% else %}Pending{% endif %}
                                 </span>
                             </td>
-                            <td>{{ payroll.payment_date|default:"-" }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{% url 'generate_payroll_pdf' payroll.id %}" class="btn btn-primary" title="Download PDF">
-                                        <i class="bi bi-file-earmark-pdf"></i>
+                                  <a href="{% url 'generate_payroll_pdf' payroll.id %}" class="btn btn-outline-primary" title="Download Payslip">
+    <i class="bi bi-file-earmark-pdf"></i>
+</a>
                                     </a>
-                                    <a href="{% url 'edit_payroll' payroll.id %}" class="btn btn-secondary" title="Edit">
+                                    <a href="{% url 'edit_payroll' payroll.id %}" class="btn btn-outline-secondary" title="Edit Record">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'delete_payroll' payroll.id %}" class="btn btn-danger" title="Delete">
+                                    <a href="{% url 'delete_payroll' payroll.id %}" class="btn btn-outline-danger" title="Delete Record">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </div>
@@ -96,7 +98,7 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-center">No payroll records found.</p>
+            <p class="text-center text-muted">No payroll records found matching the filter criteria.</p>
             {% endif %}
         </div>
     </div>

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 # Remove this line: from django.db.models import Avg
 
@@ -40,8 +41,8 @@ class LeaveRequest(models.Model):
         return f"{self.employee} - {self.start_date} to {self.end_date}"
 
 class Payroll(models.Model):
-    EMPLOYEE_CONTRIBUTION = 0.12  # 12% for EPF/PPF
-    EMPLOYER_CONTRIBUTION = 0.133  # 13.3% for EPF/PPF
+    EMPLOYEE_CONTRIBUTION = Decimal('0.12')  # 12% for EPF/PPF
+    EMPLOYER_CONTRIBUTION = Decimal('0.133')  # 13.3% for EPF/PPF
     
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     month = models.CharField(max_length=20)

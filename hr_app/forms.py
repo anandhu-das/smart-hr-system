@@ -2,6 +2,15 @@ from django import forms
 from .models import LeaveRequest, Candidate, Payroll, Employee
 
 
+# --- CRITICAL FIX: Define MONTH CHOICES globally ---
+MONTH_CHOICES = [
+    ('January', 'January'), ('February', 'February'), ('March', 'March'),
+    ('April', 'April'), ('May', 'May'), ('June', 'June'),
+    ('July', 'July'), ('August', 'August'), ('September', 'September'),
+    ('October', 'October'), ('November', 'November'), ('December', 'December')
+]
+
+
 class LeaveRequestForm(forms.ModelForm):
     class Meta:
         model = LeaveRequest
@@ -32,28 +41,20 @@ class PayrollForm(forms.ModelForm):
         ]
         widgets = {
             'payment_date': forms.DateInput(attrs={'type': 'date'}),
-            'month': forms.Select(choices=[
-                ('January', 'January'), ('February', 'February'), ('March', 'March'),
-                ('April', 'April'), ('May', 'May'), ('June', 'June'),
-                ('July', 'July'), ('August', 'August'), ('September', 'September'),
-                ('October', 'October'), ('November', 'November'), ('December', 'December')
-            ]),
+            # FIX: Use the global constant here
+            'month': forms.Select(choices=MONTH_CHOICES),
             'year': forms.NumberInput(attrs={'min': 2020, 'max': 2030}),
         }
 
 
 class PayrollCalculationForm(forms.Form):
-    month = forms.ChoiceField(choices=[
-        ('January', 'January'), ('February', 'February'), ('March', 'March'),
-        ('April', 'April'), ('May', 'May'), ('June', 'June'),
-        ('July', 'July'), ('August', 'August'), ('September', 'September'),
-        ('October', 'October'), ('November', 'November'), ('December', 'December')
-    ])
+    # FIX: Use the global constant here
+    month = forms.ChoiceField(choices=MONTH_CHOICES)
     year = forms.IntegerField(min_value=2020, max_value=2030)
 
 
 class EmployeeForm(forms.ModelForm):
-    class Meta:   # 👈 must be indented properly
+    class Meta:
         model = Employee
         fields = [
             'employee_id',

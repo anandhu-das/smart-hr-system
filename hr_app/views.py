@@ -4,9 +4,12 @@ from django.contrib.auth import login as auth_login, logout
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse
 from django.contrib.auth.views import LoginView
-from django.db.models import Sum, Avg
+# Consolidated imports for calculations
+from django.db.models import Sum, Avg, F
 from django.contrib.auth.models import User
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from decimal import Decimal # CRITICAL FIX: Import Decimal for calculations
+import calendar # CRITICAL FIX: Import calendar for accurate days in month
 import io
 
 # PDF tools
@@ -19,11 +22,9 @@ from reportlab.lib import colors
 
 # Models + Forms
 from .models import Employee, LeaveRequest, Payroll, Candidate, Department, PerformanceReview
-from .forms import LeaveRequestForm, CandidateForm, PayrollForm, PayrollCalculationForm, EmployeeForm
-from .forms import PayrollCalculationForm
+# CRITICAL FIX: Add MONTH_CHOICES to the import list
+from .forms import LeaveRequestForm, CandidateForm, PayrollForm, PayrollCalculationForm, EmployeeForm, MONTH_CHOICES
 from django.db import IntegrityError
-from datetime import date, timedelta
-from django.db.models import Sum, F
 
 
 # ---------------------------
@@ -208,6 +209,10 @@ def payroll_dashboard(request):
 @login_required
 @user_passes_test(is_hr_staff)
 def generate_bulk_payroll(request):
+    # Ensure Decimal is available within the function scope
+    from decimal import Decimal 
+    import calendar 
+    
     if request.method == 'POST':
         form = PayrollCalculationForm(request.POST)
         if form.is_valid():
@@ -217,24 +222,48 @@ def generate_bulk_payroll(request):
             employees = Employee.objects.all()
             created_count = 0
             
+            # Get month number (1-12) for calculations
+            month_num = list(form.fields['month'].choices).index((month, month)) + 1
+            
+            # Get total days in the month
+            days_in_month = calendar.monthrange(year, month_num)[1]
+
             for employee in employees:
                 if Payroll.objects.filter(employee=employee, month=month, year=year).exists():
                     continue
 
                 basic_salary = employee.salary
                 
-                # Calculate days in the month
-                days_in_month = (date(year, list(form.fields['month'].choices).index((month, month)) + 2, 1) - date(year, list(form.fields['month'].choices).index((month, month)) + 1, 1)).days
-
-                unpaid_leaves = LeaveRequest.objects.filter(
+                # Calculate unpaid leaves for deduction
+                leave_aggregate = LeaveRequest.objects.filter(
                     employee=employee,
                     status='Approved',
-                    start_date__month=date(year, list(form.fields['month'].choices).index((month, month)) + 1, 1).month,
+                    start_date__month=month_num,
                     start_date__year=year
-                ).aggregate(total_days=Sum(F('end_date') - F('start_date'))).get('total_days', timedelta(days=0)).days
+                ).aggregate(total_days=Sum(F('end_date') - F('start_date')))
+                
+                # --- FIX: Safely extract days from timedelta ---
+                total_leave_duration = leave_aggregate.get('total_days')
+                
+                # If total_days is None (no approved leaves found), set leave_days to 0
+                if total_leave_duration is None:
+                    leave_days = 0
+                else:
+                    leave_days = total_leave_duration.days
+                
+                unpaid_leaves = leave_days
+                
+                # Ensure division/multiplication involves only Decimals
+                if days_in_month == 0:
+                    daily_rate = Decimal('0')
+                else:
+                    daily_rate = basic_salary / Decimal(days_in_month) 
 
-                daily_rate = basic_salary / days_in_month
-                leave_deduction = unpaid_leaves * daily_rate
+                leave_deduction = daily_rate * Decimal(unpaid_leaves)
+                
+                # --- Convert percentage floats to Decimal objects ---
+                house_rent_allowance = basic_salary * Decimal('0.15')
+                travel_allowance = basic_salary * Decimal('0.10')
 
                 try:
                     payroll = Payroll.objects.create(
@@ -242,8 +271,8 @@ def generate_bulk_payroll(request):
                         month=month,
                         year=year,
                         basic_salary=basic_salary,
-                        house_rent_allowance=basic_salary * 0.15,
-                        travel_allowance=basic_salary * 0.1,
+                        house_rent_allowance=house_rent_allowance,
+                        travel_allowance=travel_allowance,
                         other_deductions=leave_deduction
                     )
                     created_count += 1
@@ -257,12 +286,44 @@ def generate_bulk_payroll(request):
     
     return render(request, 'hr_app/bulk_payroll.html', {'form': form})
 
-
 @login_required
 @user_passes_test(is_hr_staff)
 def manage_payroll(request):
     payrolls = Payroll.objects.select_related('employee').all()
-    return render(request, 'hr_app/manage_payroll.html', {'payrolls': payrolls})
+
+    # Get filter parameters from the request's GET data
+    month = request.GET.get('month')
+    year = request.GET.get('year')
+    status = request.GET.get('status') 
+
+    # Apply filters dynamically
+    if month:
+        payrolls = payrolls.filter(month=month)
+    
+    if year and year.isdigit():
+        payrolls = payrolls.filter(year=int(year))
+        
+    if status == 'paid':
+        payrolls = payrolls.filter(paid=True)
+    elif status == 'pending':
+        payrolls = payrolls.filter(paid=False)
+
+    # --- Data for Dropdowns ---
+    # Get all unique years from existing payrolls
+    years = Payroll.objects.order_by('-year').values_list('year', flat=True).distinct()
+    
+    # FIX: Use the directly imported constant for months
+    months = [m[0] for m in MONTH_CHOICES] 
+
+    return render(request, 'hr_app/manage_payroll.html', {
+        'payrolls': payrolls,
+        'months': months,
+        'years': years,
+        # Pass back the current selections to keep the dropdowns active after filtering
+        'selected_month': month,
+        'selected_year': year,
+        'selected_status': status,
+    })
 
 
 @login_required
@@ -308,10 +369,6 @@ def delete_payroll(request, payroll_id):
         return redirect('manage_payroll')
     return render(request, 'hr_app/delete_payroll.html', {'payroll': payroll})
 
-# hr_app/views.py
-
-# ... (keep all your existing code) ...
-
 # ---------------------------
 # Payroll Management (Additional)
 # ---------------------------
@@ -334,6 +391,8 @@ def generate_payslip_pdf(request, payroll_id):
     Generates a PDF payslip for a specific payroll record.
     """
     payroll = get_object_or_404(Payroll, id=payroll_id, employee__user=request.user)
+    # Ensure Decimal is imported for proper calculation, though Payroll.calculate_epf() should handle this.
+    from decimal import Decimal 
 
     # Create a file-like buffer for the PDF
     buffer = io.BytesIO()
@@ -357,6 +416,9 @@ def generate_payslip_pdf(request, payroll_id):
     story.append(Spacer(1, 12))
 
     # Earnings and Deductions Table
+    # CRITICAL: Call calculate_epf to get PF values as Decimals
+    employee_pf, employer_pf = payroll.calculate_epf()
+    
     earnings_data = [
         ['Earnings', 'Amount (₹)'],
         ['Basic Salary', payroll.basic_salary],
@@ -371,7 +433,7 @@ def generate_payslip_pdf(request, payroll_id):
         ['Professional Tax', payroll.professional_tax],
         ['Income Tax', payroll.income_tax],
         ['Other Deductions', payroll.other_deductions],
-        ['Employee PF', payroll.calculate_epf()[0]],
+        ['Employee PF', employee_pf], # Use the calculated Decimal value
     ]
 
     # Add a total earnings/deductions row at the end
@@ -406,16 +468,14 @@ def generate_payslip_pdf(request, payroll_id):
     # Return the PDF as an HTTP response
     return FileResponse(buffer, as_attachment=True, filename=f"payslip_{payroll.employee.employee_id}_{payroll.month}_{payroll.year}.pdf")
 
-
 # ---------------------------
-# Employee Management (NEW)
+# Employee Management
 # ---------------------------
 @login_required
 @user_passes_test(is_hr_staff)
 def manage_employees(request):
     employees = Employee.objects.select_related("user", "department").all()
     return render(request, "hr_app/manage_employees.html", {"employees": employees})
-
 
 @login_required
 @user_passes_test(is_hr_staff)
@@ -427,7 +487,7 @@ def add_employee(request):
             # link employee to a user (basic)
             user = User.objects.create_user(
                 username=employee.employee_id,
-                password="password123",  # you can improve later
+                password="password123",
                 first_name=employee.employee_id
             )
             employee.user = user
@@ -437,7 +497,6 @@ def add_employee(request):
     else:
         form = EmployeeForm()
     return render(request, "hr_app/add_employee.html", {"form": form})
-
 
 @login_required
 @user_passes_test(is_hr_staff)
@@ -453,7 +512,6 @@ def edit_employee(request, employee_id):
         form = EmployeeForm(instance=employee)
     return render(request, "hr_app/edit_employee.html", {"form": form, "employee": employee})
 
-
 @login_required
 @user_passes_test(is_hr_staff)
 def delete_employee(request, employee_id):
@@ -464,7 +522,6 @@ def delete_employee(request, employee_id):
         return redirect("manage_employees")
     return render(request, "hr_app/delete_employee.html", {"employee": employee})
 
-
 @login_required
 def my_profile(request):
     try:
@@ -473,10 +530,10 @@ def my_profile(request):
         employee = None
     return render(request, "hr_app/my_profile.html", {"employee": employee})
 
-    return render(request, 'hr_app/promotion_tracker.html', {'eligible_employees': eligible_employees})
 
-#HR Management
-
+# ---------------------------
+# Promotion Tracker
+# ---------------------------
 @login_required
 @user_passes_test(is_hr_staff)
 def promotion_tracker(request):

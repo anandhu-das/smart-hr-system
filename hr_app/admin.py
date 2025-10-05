@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Department, Employee, LeaveRequest, Payroll, Candidate
+# CRITICAL FIX: Import PerformanceReview model
+from .models import Department, Employee, LeaveRequest, Payroll, Candidate, PerformanceReview
 
 @admin.register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
@@ -29,3 +30,10 @@ class CandidateAdmin(admin.ModelAdmin):
     list_display = ['name', 'email', 'position', 'applied_on']
     list_filter = ['position', 'applied_on']
     search_fields = ['name', 'email', 'position']
+
+# CRITICAL FIX: Register the PerformanceReview Model to make it visible in the admin
+@admin.register(PerformanceReview)
+class PerformanceReviewAdmin(admin.ModelAdmin):
+    list_display = ['employee', 'rating', 'review_date']
+    list_filter = ['rating', 'review_date']
+    search_fields = ['employee__user__first_name']

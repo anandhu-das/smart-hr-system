@@ -106,67 +106,130 @@ def hr_dashboard(request):
 # ---------------------------
 # Leave Management
 # ---------------------------
+# ---------------------------
+# Leave Management
+# ---------------------------
 @login_required
 def apply_leave(request):
+    # CRITICAL FIX 1: Retrieve the employee object once, and set a default
+    # to avoid the UnboundLocalError later.
+    employee = None
     try:
         employee = Employee.objects.get(user=request.user)
         leave_requests = LeaveRequest.objects.filter(employee=employee).order_by('-applied_on')[:5]
     except Employee.DoesNotExist:
         leave_requests = []
         messages.error(request, 'Please complete your employee profile before applying for leave.')
+        # The 'employee' variable is now safely set to None if the profile doesn't exist.
 
     if request.method == 'POST':
+        # CRITICAL FIX 2: Check if the profile exists before processing the form.
+        if employee is None:
+            # If the profile doesn't exist, we prevent form submission and redirect.
+            messages.error(request, 'Cannot submit leave: Employee profile not found.')
+            return redirect('apply_leave') 
+        
         form = LeaveRequestForm(request.POST)
         if form.is_valid():
             leave_request = form.save(commit=False)
-            leave_request.employee = employee
+            leave_request.employee = employee # This line is now safe
             leave_request.save()
             messages.success(request, 'Leave application submitted successfully!')
             return redirect('employee_dashboard')
     else:
         form = LeaveRequestForm()
+        
     return render(request, 'hr_app/apply_leave.html', {'form': form, 'leave_requests': leave_requests})
 
 
 @login_required
 def leave_history(request):
+    """Retrieves all leave requests for the currently logged-in employee."""
+    employee = None
     try:
         employee = Employee.objects.get(user=request.user)
+        # Fetch all leaves, ordered by most recently applied
         leaves = LeaveRequest.objects.filter(employee=employee).order_by('-applied_on')
         return render(request, 'hr_app/leave_history.html', {'leaves': leaves})
     except Employee.DoesNotExist:
-        messages.error(request, 'Employee profile not found.')
+        messages.error(request, 'Employee profile not found. Cannot view history.')
+        # Return an empty list if the profile doesn't exist
         return render(request, 'hr_app/leave_history.html', {'leaves': []})
 
+
+# hr_app/views.py
 
 @login_required
 @user_passes_test(is_hr_staff)
 def manage_leaves(request):
-    return render(request, 'hr_app/manage_leaves.html', {
-        'pending_leaves': LeaveRequest.objects.filter(status='Pending'),
-        'approved_leaves': LeaveRequest.objects.filter(status='Approved')[:10],
-        'rejected_leaves': LeaveRequest.objects.filter(status='Rejected')[:10],
-    })
+    """View to show all pending, approved, and rejected leave requests for HR staff."""
+    
+    pending_leaves = LeaveRequest.objects.filter(status='Pending').order_by('applied_on')
+    
+    # Fetch recent approved/rejected leaves (showing top 10 of each)
+    approved_leaves = LeaveRequest.objects.filter(status='Approved').order_by('-applied_on')[:10]
+    rejected_leaves = LeaveRequest.objects.filter(status='Rejected').order_by('-applied_on')[:10]
+    
+    context = {
+        'pending_leaves': pending_leaves,
+        'approved_leaves': approved_leaves,
+        'rejected_leaves': rejected_leaves,
+    }
+    return render(request, 'hr_app/manage_leaves.html', context)
 
 
 @login_required
 @user_passes_test(is_hr_staff)
 def approve_leave(request, leave_id):
+    """Allows HR staff to approve a leave request."""
     leave = get_object_or_404(LeaveRequest, id=leave_id)
-    leave.status = 'Approved'
-    leave.save()
-    messages.success(request, f'Leave approved for {leave.employee}')
+    
+    # CRITICAL SECURITY CHECK: Prevent self-approval 
+    try:
+        current_employee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        current_employee = None
+        
+    if current_employee and leave.employee == current_employee:
+        messages.error(request, f"You cannot approve your own leave request for {leave.employee.user.username}.")
+        return redirect('manage_leaves')
+
+    if leave.status != 'Approved':
+        leave.status = 'Approved'
+        leave.save()
+        messages.success(request, f"Leave request for {leave.employee.user.username} approved.")
+    else:
+        messages.info(request, "Leave request is already approved.")
+        
     return redirect('manage_leaves')
 
 
 @login_required
 @user_passes_test(is_hr_staff)
 def reject_leave(request, leave_id):
+    """Allows HR staff to reject a leave request."""
     leave = get_object_or_404(LeaveRequest, id=leave_id)
-    leave.status = 'Rejected'
-    leave.save()
-    messages.success(request, f'Leave rejected for {leave.employee}')
+    
+    # CRITICAL SECURITY CHECK: Prevent self-rejection
+    try:
+        current_employee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        current_employee = None
+        
+    if current_employee and leave.employee == current_employee:
+        messages.error(request, f"You cannot reject your own leave request for {leave.employee.user.username}.")
+        return redirect('manage_leaves')
+        
+    if leave.status != 'Rejected':
+        leave.status = 'Rejected'
+        leave.save()
+        # Using warning for a negative action like rejection
+        messages.warning(request, f"Leave request for {leave.employee.user.username} rejected.")
+    else:
+        messages.info(request, "Leave request is already rejected.")
+        
     return redirect('manage_leaves')
+
 
 
 # ---------------------------
@@ -387,36 +450,30 @@ def view_payslips(request):
 
 @login_required
 def generate_payslip_pdf(request, payroll_id):
-    """
-    Generates a PDF payslip for a specific payroll record.
-    """
-    payroll = get_object_or_404(Payroll, id=payroll_id, employee__user=request.user)
-    # Ensure Decimal is imported for proper calculation, though Payroll.calculate_epf() should handle this.
-    from decimal import Decimal 
+    # CRITICAL FIX: Ensure is_hr_staff is checked first, and if true,
+    # simply retrieve the payroll object by ID.
+    
+    if is_hr_staff(request.user):
+        # HR staff can view ANY payroll by its ID.
+        # This will return the payroll or raise the 404 error if ID doesn't exist.
+        payroll = get_object_or_404(Payroll, id=payroll_id)
+    else:
+        # Regular employee can ONLY view their own payroll.
+        payroll = get_object_or_404(Payroll, id=payroll_id, employee__user=request.user)
 
+    # Ensure Decimal is imported for proper calculation
+    from decimal import Decimal 
+    
     # Create a file-like buffer for the PDF
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     story = []
     styles = getSampleStyleSheet()
 
-    # Add content to the story
-    title = Paragraph(f"<b>Payslip for {payroll.employee.user.get_full_name()}</b>", styles['Title'])
-    story.append(title)
-    story.append(Spacer(1, 12))
+    # CRITICAL: If the system cannot find the payroll object (e.g., if it was deleted)
+    # The get_object_or_404 already handles the 404, so we proceed with PDF generation.
 
-    # Basic Info
-    info_data = [
-        ["Employee ID:", payroll.employee.employee_id],
-        ["Month/Year:", f"{payroll.month}, {payroll.year}"],
-        ["Position:", payroll.employee.position],
-    ]
-    info_table = Table(info_data)
-    story.append(info_table)
-    story.append(Spacer(1, 12))
-
-    # Earnings and Deductions Table
-    # CRITICAL: Call calculate_epf to get PF values as Decimals
+    # Earnings and Deductions Table preparation
     employee_pf, employer_pf = payroll.calculate_epf()
     
     earnings_data = [
@@ -433,7 +490,7 @@ def generate_payslip_pdf(request, payroll_id):
         ['Professional Tax', payroll.professional_tax],
         ['Income Tax', payroll.income_tax],
         ['Other Deductions', payroll.other_deductions],
-        ['Employee PF', employee_pf], # Use the calculated Decimal value
+        ['Employee PF', employee_pf],
     ]
 
     # Add a total earnings/deductions row at the end
@@ -442,14 +499,32 @@ def generate_payslip_pdf(request, payroll_id):
     earnings_data.append(['<b>Total Earnings</b>', f'<b>{total_earnings}</b>'])
     deductions_data.append(['<b>Total Deductions</b>', f'<b>{total_deductions}</b>'])
 
-    earnings_table = Table(earnings_data, colWidths=[3*inch, 2*inch])
-    deductions_table = Table(deductions_data, colWidths=[3*inch, 2*inch])
+    # --- PDF Content Assembly ---
+    # (Rest of PDF generation code from your previous version)
+    
+    # Add content to the story
+    title = Paragraph(f"<b>Payslip for {payroll.employee.user.get_full_name()}</b>", styles['Title'])
+    story.append(title)
+    story.append(Spacer(1, 12))
 
+    # Basic Info Table
+    info_data = [
+        ["Employee ID:", payroll.employee.employee_id],
+        ["Month/Year:", f"{payroll.month}, {payroll.year}"],
+        ["Position:", payroll.employee.position],
+    ]
+    info_table = Table(info_data)
+    story.append(info_table)
+    story.append(Spacer(1, 12))
+
+    # Earnings/Deductions Tables
     table_style = TableStyle([('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
                              ('GRID', (0,0), (-1,-1), 1, colors.black),
                              ('BOX', (0,0), (-1,-1), 1, colors.black),
                              ('ALIGN', (1,0), (-1,-1), 'RIGHT')])
 
+    earnings_table = Table(earnings_data, colWidths=[3*inch, 2*inch])
+    deductions_table = Table(deductions_data, colWidths=[3*inch, 2*inch])
     earnings_table.setStyle(table_style)
     deductions_table.setStyle(table_style)
 
@@ -461,11 +536,9 @@ def generate_payslip_pdf(request, payroll_id):
     # Net Salary
     story.append(Paragraph(f"<b>Net Salary: ₹{payroll.net_salary}</b>", styles['Heading2']))
 
-    # Build the PDF
+    # Build and return
     doc.build(story)
     buffer.seek(0)
-
-    # Return the PDF as an HTTP response
     return FileResponse(buffer, as_attachment=True, filename=f"payslip_{payroll.employee.employee_id}_{payroll.month}_{payroll.year}.pdf")
 
 # ---------------------------
@@ -534,29 +607,79 @@ def my_profile(request):
 # ---------------------------
 # Promotion Tracker
 # ---------------------------
+# hr_app/views.py
+
+# hr_app/views.py
+
 @login_required
 @user_passes_test(is_hr_staff)
 def promotion_tracker(request):
     """
-    Identifies eligible employees for promotion based on tenure and performance.
+    Calculates score for ALL employees (who meet min tenure) for transparency.
     """
-    eligible_employees = []
+    from decimal import Decimal
+    from datetime import timedelta
+    from django.db.models import Sum, F
+    
+    all_employees_with_score = []
     today = datetime.now().date()
     
-    # Iterate through all employees to check for eligibility
     for employee in Employee.objects.all():
-        # Criteria 1: Check for at least 2 years of service
         years_of_service = (today - employee.date_joined).days / 365.25
         
-        if years_of_service >= 2:
-            # Criteria 2: Check for a high average performance rating (e.g., > 4)
-            avg_rating = PerformanceReview.objects.filter(employee=employee).aggregate(Avg('rating'))['rating__avg']
-            
-            if avg_rating and avg_rating > 4:
-                eligible_employees.append({
-                    'employee': employee,
-                    'years_of_service': round(years_of_service, 2),
-                    'average_rating': round(avg_rating, 2)
-                })
+        # Only skip if they fail the MANDATORY MINIMUM 2-year tenure check.
+        if years_of_service < 2:
+            continue
 
-    return render(request, 'hr_app/promotion_tracker.html', {'eligible_employees': eligible_employees})
+        # --- CALCULATE OBJECTIVE SCORE ---
+        # (The scoring logic remains the same as before)
+        tenure_score = min(Decimal(years_of_service) * Decimal('10'), Decimal('40'))
+        
+        one_year_ago = today - timedelta(days=365)
+        leave_duration = LeaveRequest.objects.filter(
+            employee=employee,
+            status='Approved',
+            start_date__gte=one_year_ago 
+        ).aggregate(total_days=Sum(F('end_date') - F('start_date')))['total_days']
+        
+        total_leave_days = leave_duration.days if leave_duration else 0
+        
+        attendance_deduction = Decimal(total_leave_days) / Decimal('2') * Decimal('5')
+        attendance_score = max(Decimal('30') - attendance_deduction, Decimal('0'))
+        
+        base_performance_score = Decimal('30') 
+        total_score = tenure_score + attendance_score + base_performance_score
+        
+        # Add ALL employees who passed the minimum 2-year check
+        all_employees_with_score.append({
+            'employee': employee,
+            'tenure': round(years_of_service, 2),
+            'score': round(total_score, 2),
+            'attendance_days': total_leave_days,
+            'is_eligible': total_score >= Decimal('75') # New flag to check eligibility
+        })
+
+    return render(request, 'hr_app/promotion_tracker.html', {'eligible_employees': all_employees_with_score})
+
+@login_required
+def edit_my_profile(request):
+    """Allows an employee to edit their own profile details."""
+    try:
+        # CRITICAL: Retrieve the employee profile linked to the currently logged-in user
+        employee = Employee.objects.get(user=request.user)
+    except Employee.DoesNotExist:
+        messages.error(request, "Error: Employee profile not found.")
+        return redirect('my_profile') # Redirect back if profile is missing
+
+    if request.method == "POST":
+        # Pass the instance to the form to update the existing record
+        form = EmployeeForm(request.POST, instance=employee) 
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect("my_profile")
+    else:
+        # Load the form with the employee's existing data
+        form = EmployeeForm(instance=employee)
+        
+    return render(request, "hr_app/edit_my_profile.html", {"form": form, "employee": employee})

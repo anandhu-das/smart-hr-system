@@ -1,26 +1,24 @@
 {% extends 'hr_app/base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">Leave Management</h2>
-    
-    <div class="mb-3">
-        <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to HR Dashboard</a>
-    </div>
+<div class="glowing-arc-bottom"></div>
 
-    <!-- Pending Leaves Section -->
-    <div class="card mb-4">
+<div class="container my-5">
+    <h2 class="my-4 text-white fw-bold">Leave Management</h2>
+    <p class="lead text-white-50">Review, approve, or reject employee leave requests.</p>
+
+    <div class="card mb-4 shadow-lg">
         <div class="card-header bg-warning text-white">
-            <h4>Pending Leave Requests ({{ pending_leaves|length }})</h4>
+            <h4 class="mb-0">Pending Leave Requests ({{ pending_leaves|length }})</h4>
         </div>
         <div class="card-body">
             {% if pending_leaves %}
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped table-dark align-middle">
                     <thead>
                         <tr>
                             <th>Employee</th>
-                            <th>Department</th>
                             <th>Leave Period</th>
                             <th>Reason</th>
                             <th>Applied On</th>
@@ -31,13 +29,14 @@
                         {% for leave in pending_leaves %}
                         <tr>
                             <td>{{ leave.employee.user.get_full_name }}</td>
-                            <td>{{ leave.employee.department }}</td>
-                            <td>{{ leave.start_date }} to {{ leave.end_date }}</td>
-                            <td>{{ leave.reason }}</td>
-                            <td>{{ leave.applied_on|date:"M d, Y" }}</td>
+                            <td>{{ leave.start_date|date:"M d, Y" }} to {{ leave.end_date|date:"M d, Y" }}</td>
+                            <td>{{ leave.reason|truncatewords:5 }}</td>
+                            <td>{{ leave.applied_on|date:"M d, H:i" }}</td>
                             <td>
-                                <a href="{% url 'approve_leave' leave.id %}" class="btn btn-success btn-sm">Approve</a>
-                                <a href="{% url 'reject_leave' leave.id %}" class="btn btn-danger btn-sm">Reject</a>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'approve_leave' leave.id %}" class="btn btn-success">Approve</a>
+                                    <a href="{% url 'reject_leave' leave.id %}" class="btn btn-danger">Reject</a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -45,20 +44,19 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-center">No pending leave requests.</p>
+            <div class="alert alert-success mt-3">No pending leave requests.</div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Recently Approved Leaves -->
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-lg">
         <div class="card-header bg-success text-white">
-            <h4>Recently Approved Leaves</h4>
+            <h4 class="mb-0">Recently Approved Leaves (Top {{ approved_leaves|length }})</h4>
         </div>
         <div class="card-body">
             {% if approved_leaves %}
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped table-dark align-middle">
                     <thead>
                         <tr>
                             <th>Employee</th>
@@ -71,8 +69,8 @@
                         {% for leave in approved_leaves %}
                         <tr>
                             <td>{{ leave.employee.user.get_full_name }}</td>
-                            <td>{{ leave.start_date }} to {{ leave.end_date }}</td>
-                            <td>{{ leave.reason }}</td>
+                            <td>{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</td>
+                            <td>{{ leave.reason|truncatewords:5 }}</td>
                             <td>{{ leave.applied_on|date:"M d, Y" }}</td>
                         </tr>
                         {% endfor %}
@@ -80,20 +78,19 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-center">No approved leaves yet.</p>
+            <div class="alert alert-info">No approved leaves yet.</div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Recently Rejected Leaves -->
-    <div class="card">
+    <div class="card shadow-lg">
         <div class="card-header bg-danger text-white">
-            <h4>Recently Rejected Leaves</h4>
+            <h4 class="mb-0">Recently Rejected Leaves (Top {{ rejected_leaves|length }})</h4>
         </div>
         <div class="card-body">
             {% if rejected_leaves %}
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped table-dark align-middle">
                     <thead>
                         <tr>
                             <th>Employee</th>
@@ -106,8 +103,8 @@
                         {% for leave in rejected_leaves %}
                         <tr>
                             <td>{{ leave.employee.user.get_full_name }}</td>
-                            <td>{{ leave.start_date }} to {{ leave.end_date }}</td>
-                            <td>{{ leave.reason }}</td>
+                            <td>{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</td>
+                            <td>{{ leave.reason|truncatewords:5 }}</td>
                             <td>{{ leave.applied_on|date:"M d, Y" }}</td>
                         </tr>
                         {% endfor %}
@@ -115,9 +112,12 @@
                 </table>
             </div>
             {% else %}
-            <p class="text-center">No rejected leaves.</p>
+            <div class="alert alert-info">No rejected leaves yet.</div>
             {% endif %}
         </div>
+    </div>
+    <div class="text-center mt-5">
+        <a href="{% url 'hr_dashboard' %}" class="btn btn-primary btn-lg">Back to HR Dashboard</a>
     </div>
 </div>
 {% endblock %}

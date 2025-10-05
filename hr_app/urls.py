@@ -13,6 +13,7 @@ urlpatterns = [
     path('payslips/', views.view_payslips, name='view_payslips'),
     path('payslip-pdf/<int:payroll_id>/', views.generate_payslip_pdf, name='generate_payroll_pdf'),
     path('my-profile/', views.my_profile, name='my_profile'),
+    path('my-profile/edit/', views.edit_my_profile, name='edit_my_profile'),
     
     # HR Admin routes 
     path('hr/login/', CustomLoginView.as_view(template_name='hr_app/hr_login.html'), name='hr_login'),

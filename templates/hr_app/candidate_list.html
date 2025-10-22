@@ -1,13 +1,21 @@
 {% extends 'hr_app/base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Candidate Repository</h2>
-    <p>View and manage all job applications submitted to the company.</p>
+    <h2 class="my-4 text-white">Candidate Repository</h2> {# Added text-white for consistency #}
+    <p class="text-muted">View and manage all job applications submitted to the company.</p> {# Added text-muted #}
     
+    {# Add "Back to Dashboard" button here #}
+    <div class="mb-3">
+        <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
     {% if candidates %}
     <div class="table-responsive">
-        <table class="table table-striped table-hover mt-3">
+        <table class="table table-striped table-hover table-dark mt-3"> {# Added table-dark for consistency #}
             <thead class="table-primary">
                 <tr>
                     <th>Name</th>
@@ -15,7 +23,7 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Applied On</th>
-                    <th>Status</th>
+                    {# --- REMOVED: Status Column Header --- #}
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -27,29 +35,29 @@
                     <td>{{ candidate.email }}</td>
                     <td>{{ candidate.phone }}</td>
                     <td>{{ candidate.applied_on|date:"F d, Y" }}</td>
-                    <td>
-                        <span class="badge 
-                            {% if candidate.status == 'Applied' %}bg-info{% endif %}
-                            {% if candidate.status == 'Reviewed' %}bg-secondary{% endif %}
-                            {% if candidate.status == 'Interview' %}bg-primary{% endif %}
-                            {% if candidate.status == 'Rejected' %}bg-danger{% endif %}
-                            {% if candidate.status == 'Hired' %}bg-success{% endif %}">
-                            {{ candidate.status }}
-                        </span>
-                    </td>
+                    {# --- REMOVED: Status Column Data --- #}
                     <td>
                         <div class="btn-group btn-group-sm">
+                            {# Download CV Button - remains the same #}
                             {% if candidate.cv %}
                                 <a href="{{ candidate.cv.url }}" class="btn btn-primary" title="Download CV" download>
                                     <i class="bi bi-download"></i> CV
                                 </a>
+                            {% else %}
+                                <button class="btn btn-primary" title="No CV Available" disabled>
+                                    <i class="bi bi-download"></i> CV
+                                </button>
                             {% endif %}
-                            <a href="#" class="btn btn-secondary" title="Update Status">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="#" class="btn btn-danger" title="Delete">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            
+                            {# --- REMOVED: "Update Status" (Edit) Button --- #}
+                            
+                            {# DELETE BUTTON - remains the same #}
+                            <form action="{% url 'delete_candidate' candidate.id %}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete {{ candidate.name }}\'s application? This action cannot be undone.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -58,14 +66,63 @@
         </table>
     </div>
     {% else %}
-    <div class="alert alert-info mt-3" role="alert">
+    <div class="alert alert-info bg-dark text-white border-0 mt-3" role="alert"> {# Styled alert #}
         <h4 class="alert-heading">No Candidates Found</h4>
         <p>There are currently no candidate resumes in the repository.</p>
     </div>
     {% endif %}
 
-    <div class="mt-4">
-        <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
-    </div>
+    {# --- REMOVED: The old "Back to Dashboard" div. It's moved to the top. --- #}
 </div>
+
+{# Added some custom styles for consistency with dark theme #}
+<style>
+    .table-dark thead th {
+        background-color: #5a2e8c !important; /* Darker purple for header */
+        color: white;
+        border-color: #7b43a8 !important;
+    }
+    .table-dark tbody tr {
+        background-color: #2a2a2a; /* Darker background for rows */
+        color: #e0e0e0;
+    }
+    .table-dark tbody tr:nth-of-type(odd) {
+        background-color: #333333; /* Alternate row color */
+    }
+    .table-dark {
+        border-color: #4a4a4a;
+    }
+    .btn-primary {
+        background-color: #8a2be2; /* Blue-violet */
+        border-color: #8a2be2;
+    }
+    .btn-primary:hover {
+        background-color: #6f22b8;
+        border-color: #6f22b8;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+    .alert-info {
+        background-color: #2c2c2c !important; /* Darker alert background */
+        color: #e0e0e0 !important;
+    }
+    .alert-heading {
+        color: #a855f7 !important; /* Purple heading for alerts */
+    }
+</style>
+
 {% endblock %}

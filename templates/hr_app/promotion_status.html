@@ -1,0 +1,42 @@
+{% extends 'hr_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="glowing-arc-bottom"></div>
+
+<div class="container my-5">
+    <h2 class="my-4 text-white fw-bold text-center">My Promotion Status</h2>
+    <p class="lead text-white-50 text-center">Objective evaluation based on tenure, performance, and attendance.</p>
+
+    <div class="card p-4 shadow-lg" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-body text-center">
+            {% if promotion_data.error %}
+            <div class="alert alert-danger">
+                <p>Error retrieving profile. Please ensure your employee record is complete.</p>
+            </div>
+            {% else %}
+            
+            <h4 class="mb-3">Current Eligibility Score</h4>
+            <div class="display-4 fw-bold mb-4 {% if promotion_data.is_eligible %}text-success{% else %}text-danger{% endif %}">
+                {{ promotion_data.score }} / 100
+            </div>
+
+            <p class="mb-1"><strong>Tenure:</strong> {{ promotion_data.tenure }} years</p>
+            <p class="mb-1"><strong>Leave Days (Last Year):</strong> {{ promotion_data.leave_days }} days</p>
+
+            <div class="mt-4 p-3 rounded-lg" style="background-color: rgba(168, 85, 247, 0.1);">
+                <p class="mb-0 fw-bold">Status: 
+                    <span class="badge {% if promotion_data.is_eligible %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ promotion_data.status_text }}
+                    </span>
+                </p>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'hr_app:employee_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

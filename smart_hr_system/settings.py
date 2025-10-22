@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'hr_app',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [

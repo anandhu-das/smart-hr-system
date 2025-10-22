@@ -22,6 +22,7 @@ urlpatterns = [
     path('hr/approve-leave/<int:leave_id>/', views.approve_leave, name='approve_leave'),
     path('hr/reject-leave/<int:leave_id>/', views.reject_leave, name='reject_leave'),
     path('hr/candidates/', views.candidate_list, name='candidate_list'),
+    path('hr/candidates/delete/<int:candidate_id>/', views.delete_candidate, name='delete_candidate'),
 
     # Payroll Management URLs
     path('hr/payroll/dashboard/', views.payroll_dashboard, name='payroll_dashboard'),
@@ -33,7 +34,6 @@ urlpatterns = [
 
     # Employee Management URLs
     path('hr/employees/', views.manage_employees, name='manage_employees'),
-    path('hr/employees/add/', views.add_employee, name='add_employee'),
     path('hr/employees/edit/<int:employee_id>/', views.edit_employee, name='edit_employee'),
     path('hr/employees/delete/<int:employee_id>/', views.delete_employee, name='delete_employee'),
     

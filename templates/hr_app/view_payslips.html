@@ -1,34 +1,46 @@
 {% extends 'hr_app/base.html' %}
+{% load static %}
+{% load humanize %} {# Added for currency formatting, ensure you have 'django.contrib.humanize' in INSTALLED_APPS #}
 
 {% block content %}
 <div class="container">
-    <h2 class="my-4">My Payslips</h2>
+    <h2 class="my-4 text-white">My Payslips</h2>
     
     {% if payrolls %}
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover table-dark">
             <thead class="table-primary">
                 <tr>
                     <th>Period</th>
                     <th>Basic Salary</th>
-                    <th>Allowances</th>
-                    <th>Deductions</th>
+                    {# --- FIX: Changed column headers to be more accurate --- #}
+                    <th>Total Allowances</th> 
+                    <th>Total Deductions</th>
                     <th>Net Salary</th>
                     <th>Status</th>
+                    <th>Action</th> {# Added action column for download link #}
                 </tr>
             </thead>
             <tbody>
                 {% for payroll in payrolls %}
                 <tr>
                     <td>{{ payroll.month }} {{ payroll.year }}</td>
-                    <td>₹{{ payroll.basic_salary }}</td>
-                    <td>₹{{ payroll.allowances }}</td>
-                    <td>₹{{ payroll.deductions }}</td>
-                    <td>₹{{ payroll.net_salary }}</td>
+                    <td>₹{{ payroll.basic_salary|floatformat:"2"|intcomma }}</td>
+                    
+                    {# --- FIX: Call the methods from your Payroll model --- #}
+                    {# Assuming calculate_total_earnings returns sum of basic + all allowances #}
+                    <td>₹{{ payroll.calculate_total_earnings|floatformat:"2"|intcomma }}</td>
+                    <td>₹{{ payroll.calculate_total_deductions|floatformat:"2"|intcomma }}</td>
+                    
+                    <td>₹{{ payroll.net_salary|floatformat:"2"|intcomma }}</td>
                     <td>
-                        <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning{% endif %}">
+                        <span class="badge {% if payroll.paid %}bg-success{% else %}bg-warning text-dark{% endif %}">
                             {% if payroll.paid %}Paid{% else %}Pending{% endif %}
                         </span>
+                    </td>
+                    <td>
+                        {# Assuming you have a URL named 'generate_payslip_pdf' #}
+                        <a href="{% url 'generate_payroll_pdf' payroll.id %}" class="btn btn-primary btn-sm">Download</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -36,7 +48,7 @@
         </table>
     </div>
     {% else %}
-    <div class="alert alert-info">
+    <div class="alert alert-info bg-dark text-white border-0">
         <h4>No payslips available</h4>
         <p>You don't have any payroll records yet. Please contact HR if you believe this is an error.</p>
     </div>
@@ -46,4 +58,39 @@
         <a href="{% url 'employee_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
 </div>
+
+<style>
+    /* Custom styles to match your theme */
+    .table-dark thead th {
+        background-color: #5a2e8c !important; /* Darker purple for header */
+        color: white;
+        border-color: #7b43a8 !important;
+    }
+    .table-dark tbody tr {
+        background-color: #2a2a2a; /* Darker background for rows */
+        color: #e0e0e0;
+    }
+    .table-dark tbody tr:hover {
+        background-color: #3a3a3a; /* Slightly lighter on hover */
+    }
+    .table-dark {
+        border-color: #4a4a4a;
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #333333; /* Alternate row color */
+    }
+    .badge.bg-warning {
+        background-color: #ffc107 !important; /* Standard yellow for pending */
+        color: #333 !important;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+    }
+</style>
+
 {% endblock %}

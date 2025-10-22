@@ -253,6 +253,20 @@ def candidate_list(request):
     candidates = Candidate.objects.all().order_by('-applied_on')
     return render(request, 'hr_app/candidate_list.html', {'candidates': candidates})
 
+@login_required
+@user_passes_test(is_hr_staff)
+def delete_candidate(request, candidate_id):
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+    if request.method == 'POST':
+        candidate.delete()
+        messages.success(request, f"Candidate {candidate.name}'s application deleted successfully.")
+        return redirect('candidate_list') # Redirect to the candidate_list page after deletion
+    
+    # If a GET request somehow reaches this URL (e.g., direct access), 
+    # redirect back with a warning, or render a confirmation page.
+    messages.warning(request, "Deletion requires a POST request.")
+    return redirect('candidate_list')
+
 
 # ---------------------------
 # Payroll Management
@@ -550,26 +564,6 @@ def manage_employees(request):
     employees = Employee.objects.select_related("user", "department").all()
     return render(request, "hr_app/manage_employees.html", {"employees": employees})
 
-@login_required
-@user_passes_test(is_hr_staff)
-def add_employee(request):
-    if request.method == "POST":
-        form = EmployeeForm(request.POST)
-        if form.is_valid():
-            employee = form.save(commit=False)
-            # link employee to a user (basic)
-            user = User.objects.create_user(
-                username=employee.employee_id,
-                password="password123",
-                first_name=employee.employee_id
-            )
-            employee.user = user
-            employee.save()
-            messages.success(request, "Employee added successfully")
-            return redirect("manage_employees")
-    else:
-        form = EmployeeForm()
-    return render(request, "hr_app/add_employee.html", {"form": form})
 
 @login_required
 @user_passes_test(is_hr_staff)
